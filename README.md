@@ -28,6 +28,8 @@ If the balance factor of any node becomes +2 or −2, the tree is considered imb
 | Best Used When | Search-heavy operations | Insert/Delete-heavy operations |
 
 **Why Java Uses Red-Black Tree Instead of AVL Tree in TreeMap**
+
+
 Java uses Red-Black Trees in TreeMap because they provide better overall performance for real-world applications. Red-Black Trees require fewer rotations during insertion and deletion compared to AVL trees, making updates faster.
 
 Since TreeMap operations often involve frequent insertions and deletions, Red-Black Trees offer a good balance between performance and simplicity while still guaranteeing O(log n) time complexity.
