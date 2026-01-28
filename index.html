@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVL Tree Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            animation: fadeInUp 0.8s ease-out;
+            backdrop-filter: blur(10px);
+        }
+
+        input[type="number"] {
+            width: 140px;
+            padding: 14px 18px;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        button {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-insert {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .btn-random {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(-1px);
+        }
+
+        .canvas-container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            overflow-x: auto;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 10px;
+        }
+
+        .info-panel {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .info-panel h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .stat-item strong {
+            color: #667eea;
+            font-size: 0.9em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .stat-item span {
+            font-size: 1.5em;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .legend-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+        }
+
+        .legend-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .legend-items {
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .legend-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .legend-color {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 3px solid #333;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 28px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            backdrop-filter: blur(10px);
+        }
+
+        .message.success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .message.error {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px) scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .rotation-banner {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            padding: 15px 40px;
+            border-radius: 50px;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 3px solid rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: translateX(-50%) scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                transform: translateX(-50%) scale(1.05);
+            }
+            100% {
+                transform: translateX(-50%) scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌳 AVL Tree Visualization</h1>
+            <p>Self-balancing Binary Search Tree with Animations</p>
+        </div>
+
+        <div class="controls">
+            <input type="number" id="nodeValue" placeholder="Enter value (1-999)" min="1" max="999">
+            <button class="btn-insert" onclick="insertNode()">Insert Node</button>
+            <button class="btn-delete" onclick="deleteNode()">Delete Node</button>
+            <button class="btn-random" onclick="insertRandom()">Insert Random</button>
+            <button class="btn-random" onclick="loadSample()">Load Sample Tree</button>
+            <button class="btn-clear" onclick="clearTree()">Clear Tree</button>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="treeCanvas"></canvas>
+        </div>
+
+        <div class="info-panel">
+            <h3>📊 Tree Statistics</h3>
+            <div class="stats">
+                <div class="stat-item">
+                    <strong>Tree Height</strong>
+                    <span id="treeHeight">0</span>
+                </div>
+                <div class="stat-item">
+                    <strong>Total Nodes</strong>
+                    <span id="nodeCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <strong>Last Operation</strong>
+                    <span id="lastOp" style="font-size: 1.1em;">None</span>
+                </div>
+            </div>
+            
+            <div class="legend-container">
+                <div class="legend-title">🎨 Node Color Legend</div>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                        <span>Balanced Node</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                        <span>New Node</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); border-color: #ffd43b;"></div>
+                        <span>Rotating Node</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // AVL Node Class
+        class AVLNode {
+            constructor(value) {
+                this.value = value;
+                this.left = null;
+                this.right = null;
+                this.height = 1;
+                this.x = 0;
+                this.y = 0;
+                this.targetX = 0;
+                this.targetY = 0;
+                this.highlight = false;
+            }
+        }
+
+        // AVL Tree Class
+        class AVLTree {
+            constructor() {
+                this.root = null;
+                this.nodeCount = 0;
+                this.rotationType = null;
+                this.rotatingNodes = new Set();
+            }
+
+            getHeight(node) {
+                return node ? node.height : 0;
+            }
+
+            updateHeight(node) {
+                if (node) {
+                    node.height = 1 + Math.max(this.getHeight(node.left), this.getHeight(node.right));
+                }
+            }
+
+            getBalance(node) {
+                return node ? this.getHeight(node.left) - this.getHeight(node.right) : 0;
+            }
+
+            rotateRight(y) {
+                console.log('Right Rotation at node:', y.value);
+                this.rotationType = 'Right Rotation';
+                this.rotatingNodes.add(y.value);
+                if (y.left) this.rotatingNodes.add(y.left.value);
+                
+                let x = y.left;
+                let T2 = x.right;
+
+                x.right = y;
+                y.left = T2;
+
+                this.updateHeight(y);
+                this.updateHeight(x);
+
+                setTimeout(() => {
+                    this.rotatingNodes.clear();
+                    this.rotationType = null;
+                }, 3000);
+
+                return x;
+            }
+
+            rotateLeft(x) {
+                console.log('Left Rotation at node:', x.value);
+                this.rotationType = 'Left Rotation';
+                this.rotatingNodes.add(x.value);
+                if (x.right) this.rotatingNodes.add(x.right.value);
+                
+                let y = x.right;
+                let T2 = y.left;
+
+                y.left = x;
+                x.right = T2;
+
+                this.updateHeight(x);
+                this.updateHeight(y);
+
+                setTimeout(() => {
+                    this.rotatingNodes.clear();
+                    this.rotationType = null;
+                }, 3000);
+
+                return y;
+            }
+
+            insert(node, value) {
+                // Step 1: Perform normal BST insertion
+                if (!node) {
+                    this.nodeCount++;
+                    let newNode = new AVLNode(value);
+                    newNode.highlight = true;
+                    setTimeout(() => newNode.highlight = false, 3000); // Increased from 2000 to 3000ms
+                    return newNode;
+                }
+
+                if (value < node.value) {
+                    node.left = this.insert(node.left, value);
+                } else if (value > node.value) {
+                    node.right = this.insert(node.right, value);
+                } else {
+                    return node; // Duplicate values not allowed
+                }
+
+                // Step 2: Update height
+                this.updateHeight(node);
+
+                // Step 3: Get balance factor
+                let balance = this.getBalance(node);
+
+                // Step 4: Perform rotations if needed
+                // Left Left Case
+                if (balance > 1 && value < node.left.value) {
+                    return this.rotateRight(node);
+                }
+
+                // Right Right Case
+                if (balance < -1 && value > node.right.value) {
+                    return this.rotateLeft(node);
+                }
+
+                // Left Right Case
+                if (balance > 1 && value > node.left.value) {
+                    node.left = this.rotateLeft(node.left);
+                    return this.rotateRight(node);
+                }
+
+                // Right Left Case
+                if (balance < -1 && value < node.right.value) {
+                    node.right = this.rotateRight(node.right);
+                    return this.rotateLeft(node);
+                }
+
+                return node;
+            }
+
+            minValueNode(node) {
+                let current = node;
+                while (current.left) {
+                    current = current.left;
+                }
+                return current;
+            }
+
+            deleteNode(node, value) {
+                if (!node) return node;
+
+                if (value < node.value) {
+                    node.left = this.deleteNode(node.left, value);
+                } else if (value > node.value) {
+                    node.right = this.deleteNode(node.right, value);
+                } else {
+                    // Node with only one child or no child
+                    if (!node.left || !node.right) {
+                        node = node.left || node.right;
+                        this.nodeCount--;
+                    } else {
+                        // Node with two children
+                        let temp = this.minValueNode(node.right);
+                        node.value = temp.value;
+                        node.right = this.deleteNode(node.right, temp.value);
+                    }
+                }
+
+                if (!node) return node;
+
+                this.updateHeight(node);
+                let balance = this.getBalance(node);
+
+                // Left Left Case
+                if (balance > 1 && this.getBalance(node.left) >= 0) {
+                    return this.rotateRight(node);
+                }
+
+                // Left Right Case
+                if (balance > 1 && this.getBalance(node.left) < 0) {
+                    node.left = this.rotateLeft(node.left);
+                    return this.rotateRight(node);
+                }
+
+                // Right Right Case
+                if (balance < -1 && this.getBalance(node.right) <= 0) {
+                    return this.rotateLeft(node);
+                }
+
+                // Right Left Case
+                if (balance < -1 && this.getBalance(node.right) > 0) {
+                    node.right = this.rotateRight(node.right);
+                    return this.rotateLeft(node);
+                }
+
+                return node;
+            }
+        }
+
+        // Canvas setup
+        const canvas = document.getElementById('treeCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1200;
+        canvas.height = 600;
+
+        // Create tree instance
+        const tree = new AVLTree();
+        let animating = true;
+
+        // Calculate node positions
+        function calculatePositions(node, x, y, level, offset) {
+            if (!node) return;
+
+            node.targetX = x;
+            node.targetY = y;
+
+            // Initialize position if first time
+            if (node.x === 0 && node.y === 0) {
+                node.x = x;
+                node.y = y;
+            }
+
+            let spacing = offset / 2;
+
+            if (node.left) {
+                calculatePositions(node.left, x - spacing, y + 80, level + 1, spacing);
+            }
+            if (node.right) {
+                calculatePositions(node.right, x + spacing, y + 80, level + 1, spacing);
+            }
+        }
+
+        // Animate node positions
+        function animatePositions(node) {
+            if (!node) return;
+
+            let speed = 0.08; // Slower animation speed (was 0.2)
+            node.x += (node.targetX - node.x) * speed;
+            node.y += (node.targetY - node.y) * speed;
+
+            animatePositions(node.left);
+            animatePositions(node.right);
+        }
+
+        // Draw edges
+        function drawEdges(node) {
+            if (!node) return;
+
+            ctx.strokeStyle = '#cbd5e0';
+            ctx.lineWidth = 2;
+
+            if (node.left) {
+                ctx.beginPath();
+                ctx.moveTo(node.x, node.y);
+                ctx.lineTo(node.left.x, node.left.y);
+                ctx.stroke();
+                drawEdges(node.left);
+            }
+
+            if (node.right) {
+                ctx.beginPath();
+                ctx.moveTo(node.x, node.y);
+                ctx.lineTo(node.right.x, node.right.y);
+                ctx.stroke();
+                drawEdges(node.right);
+            }
+        }
+
+        // Draw nodes
+        function drawNode(node) {
+            if (!node) return;
+
+            drawNode(node.left);
+            drawNode(node.right);
+
+            let radius = 30;
+            let isRotating = tree.rotatingNodes.has(node.value);
+
+            // Draw shadow
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+            ctx.shadowBlur = isRotating ? 15 : 8;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+
+            // Draw circle
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+
+            let gradient = ctx.createLinearGradient(
+                node.x - radius, node.y - radius,
+                node.x + radius, node.y + radius
+            );
+
+            if (isRotating) {
+                // Orange gradient for rotating nodes
+                gradient.addColorStop(0, '#ff6b6b');
+                gradient.addColorStop(1, '#ee5a6f');
+            } else if (node.highlight) {
+                gradient.addColorStop(0, '#f093fb');
+                gradient.addColorStop(1, '#f5576c');
+            } else {
+                gradient.addColorStop(0, '#667eea');
+                gradient.addColorStop(1, '#764ba2');
+            }
+
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            ctx.strokeStyle = isRotating ? '#ffd43b' : 'white';
+            ctx.lineWidth = isRotating ? 4 : 3;
+            ctx.stroke();
+
+            // Reset shadow
+            ctx.shadowColor = 'transparent';
+
+            // Draw value
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 20px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(node.value, node.x, node.y);
+
+            // Draw balance factor
+            let balance = tree.getBalance(node);
+            ctx.fillStyle = isRotating ? '#ff6b6b' : '#2d3748';
+            ctx.font = 'bold 14px Segoe UI';
+            ctx.fillText('BF:' + balance, node.x, node.y + radius + 18);
+        }
+
+        // Main draw function
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (!tree.root) {
+                // Draw empty state with better styling
+                ctx.save();
+                
+                // Draw icon circle
+                ctx.fillStyle = '#e9ecef';
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, canvas.height / 2 - 40, 60, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw tree emoji/icon
+                ctx.font = '60px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🌳', canvas.width / 2, canvas.height / 2 - 40);
+                
+                // Main message
+                ctx.fillStyle = '#667eea';
+                ctx.font = 'bold 28px Segoe UI';
+                ctx.fillText('Tree is Empty', canvas.width / 2, canvas.height / 2 + 40);
+                
+                // Subtitle
+                ctx.fillStyle = '#a0aec0';
+                ctx.font = '18px Segoe UI';
+                ctx.fillText('Insert nodes to start building your AVL tree', canvas.width / 2, canvas.height / 2 + 75);
+                
+                ctx.restore();
+                requestAnimationFrame(draw);
+                return;
+            }
+
+            calculatePositions(tree.root, canvas.width / 2, 60, 0, 300);
+            animatePositions(tree.root);
+
+            drawEdges(tree.root);
+            drawNode(tree.root);
+
+            // Display rotation type if active
+            if (tree.rotationType) {
+                ctx.save();
+                
+                // Draw banner background
+                ctx.fillStyle = 'rgba(255, 107, 107, 0.95)';
+                ctx.shadowColor = 'rgba(255, 107, 107, 0.5)';
+                ctx.shadowBlur = 20;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 4;
+                
+                let bannerWidth = 320;
+                let bannerHeight = 55;
+                let bannerX = canvas.width / 2 - bannerWidth / 2;
+                let bannerY = 15;
+                let borderRadius = 30;
+                
+                // Rounded rectangle
+                ctx.beginPath();
+                ctx.moveTo(bannerX + borderRadius, bannerY);
+                ctx.lineTo(bannerX + bannerWidth - borderRadius, bannerY);
+                ctx.quadraticCurveTo(bannerX + bannerWidth, bannerY, bannerX + bannerWidth, bannerY + borderRadius);
+                ctx.lineTo(bannerX + bannerWidth, bannerY + bannerHeight - borderRadius);
+                ctx.quadraticCurveTo(bannerX + bannerWidth, bannerY + bannerHeight, bannerX + bannerWidth - borderRadius, bannerY + bannerHeight);
+                ctx.lineTo(bannerX + borderRadius, bannerY + bannerHeight);
+                ctx.quadraticCurveTo(bannerX, bannerY + bannerHeight, bannerX, bannerY + bannerHeight - borderRadius);
+                ctx.lineTo(bannerX, bannerY + borderRadius);
+                ctx.quadraticCurveTo(bannerX, bannerY, bannerX + borderRadius, bannerY);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Border
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                ctx.shadowColor = 'transparent';
+                
+                // Text
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 24px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🔄 ' + tree.rotationType, canvas.width / 2, bannerY + bannerHeight / 2);
+                
+                ctx.restore();
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        // Update info panel
+        function updateInfo() {
+            document.getElementById('treeHeight').textContent = tree.getHeight(tree.root);
+            document.getElementById('nodeCount').textContent = tree.nodeCount;
+        }
+
+        // Show message
+        function showMessage(text, type = 'success') {
+            let existing = document.querySelector('.message');
+            if (existing) existing.remove();
+
+            let message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = text;
+            document.body.appendChild(message);
+
+            setTimeout(() => message.remove(), 2500);
+        }
+
+        // Insert node
+        function insertNode() {
+            let input = document.getElementById('nodeValue');
+            let value = parseInt(input.value);
+
+            if (!value || value < 1 || value > 999) {
+                showMessage('Please enter a number between 1-999', 'error');
+                return;
+            }
+
+            tree.root = tree.insert(tree.root, value);
+            updateInfo();
+            document.getElementById('lastOp').textContent = `Inserted ${value}`;
+            showMessage(`Node ${value} inserted!`, 'success');
+            input.value = '';
+        }
+
+        // Delete node
+        function deleteNode() {
+            let input = document.getElementById('nodeValue');
+            let value = parseInt(input.value);
+
+            if (!value) {
+                showMessage('Please enter a value to delete', 'error');
+                return;
+            }
+
+            if (!tree.root) {
+                showMessage('Tree is empty!', 'error');
+                return;
+            }
+
+            tree.root = tree.deleteNode(tree.root, value);
+            updateInfo();
+            document.getElementById('lastOp').textContent = `Deleted ${value}`;
+            showMessage(`Node ${value} deleted!`, 'success');
+            input.value = '';
+        }
+
+        // Insert random node
+        function insertRandom() {
+            let value = Math.floor(Math.random() * 99) + 1;
+            tree.root = tree.insert(tree.root, value);
+            updateInfo();
+            document.getElementById('lastOp').textContent = `Inserted ${value} (random)`;
+            showMessage(`Random node ${value} inserted!`, 'success');
+        }
+
+        // Clear tree
+        function clearTree() {
+            tree.root = null;
+            tree.nodeCount = 0;
+            updateInfo();
+            document.getElementById('lastOp').textContent = 'Tree cleared';
+            showMessage('Tree cleared!', 'success');
+        }
+
+        // Load sample tree
+        function loadSample() {
+            if (tree.root) {
+                showMessage('Please clear the tree first!', 'error');
+                return;
+            }
+            [50, 25, 75, 10, 30, 60, 90, 5, 15].forEach(val => {
+                tree.root = tree.insert(tree.root, val);
+            });
+            updateInfo();
+            document.getElementById('lastOp').textContent = 'Sample tree loaded';
+            showMessage('Sample tree loaded with 9 nodes!', 'success');
+        }
+
+        // Enter key support
+        document.getElementById('nodeValue').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                insertNode();
+            }
+        });
+
+        // Start with empty tree
+        updateInfo();
+
+        // Start animation
+        draw();
+    </script>
+</body>
+</html>
