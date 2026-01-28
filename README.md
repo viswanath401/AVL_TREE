@@ -15,3 +15,13 @@ A balanced BST is needed to prevent the tree from becoming skewed like a linked 
 An AVL tree detects imbalance by checking the balance factor of each node after insertion or deletion.
 **Balance Factor = Height of Left Subtree − Height of Right Subtree**
 If the balance factor of any node becomes +2 or −2, the tree is considered imbalanced and rotations are performed to restore balance.
+
+**Comparison Between AVL Tree and Red-Black Tree**
+| Feature | AVL Tree | Red-Black Tree |
+|-------|---------|----------------|
+| Balance Type | Strictly balanced | Loosely balanced |
+| Height | Smaller height | Slightly taller |
+| Search Performance | Faster | Slightly slower |
+| Insert/Delete | More rotations | Fewer rotations |
+| Implementation | More complex | Simpler |
+| Best Used When | Search-heavy operations | Insert/Delete-heavy operations |
